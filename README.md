@@ -11,8 +11,7 @@ Serve folder with your server of choice.
 
 2. Make sure you are in the same path 
 ```shell 
-   cd pwa-news-Application 
-```
+
 3. Run `serve .`
 4. Now you can browse [http://localhost:5000](http://localhost:5000)
 
