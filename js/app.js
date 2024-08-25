@@ -5,6 +5,8 @@ const search = document.querySelector('#form');
 const sourceSelector = document.querySelector('#sourceSelector');
 const defaultSrouce = 'bbc-news';
 
+
+
 window.addEventListener('load', async e => {
     updateNews();
     await updateSources();
@@ -41,24 +43,62 @@ window.addEventListener('load', async e => {
 
 });
 
+/**
+ * Gets a list of news sources from the News API
+ * and adds them as options to the source selector
+ * dropdown.
+ */
 async function updateSources() {
+    // Get a list of news sources from the News API
     const res = await fetch(`https://newsapi.org/v1/sources`);
+
+    // Get the JSON response and store it in the `json` variable
     const json = await res.json();
 
+    // Create an array of HTML strings, each representing an option
+    // for the source selector dropdown. The value of each option is
+    // set to the ID of the news source, and the text of each option is
+    // set to the name of the news source.
+    const options = json.sources.map(src => `<option tabindex="0" value="${src.id}">${src.name}</option>`);
 
-    sourceSelector.innerHTML = json.sources
-        .map(src => `<option tabindex="0" value="${src.id}">${src.name}</option>`)
-        .join('\n');
+    // Join the array of HTML strings with newline characters
+    // to create a single string of HTML.
+    const optionsHTML = options.join('\n');
+
+    // Set the innerHTML of the source selector to the HTML
+    // string we just created.
+    sourceSelector.innerHTML = optionsHTML;
 }
 
 
+/**
+ * Fetches news articles from the News API and renders them to the page.
+ *
+ * If a `source` parameter is provided, it is used to fetch articles from
+ * the specified news source. Otherwise, the default source is used.
+ *
+ * @param {string} [source] - The ID of the news source to fetch articles
+ *  from. If not specified, the default source is used.
+ */
 async function updateNews(source = defaultSrouce) {
 
+    // Fetch the articles from the News API. The URL is composed of the
+    // News API endpoint URL, the source ID, and the API key.
     const res = await fetch(`https://newsapi.org/v1/articles?source=${source}&apikey=${apikey}`);
+
+    // Parse the response as JSON.
     const json = await res.json();
 
+    // Create an array of HTML strings, each representing an article. The
+    // `map` method is used to iterate over the articles and call the
+    // `createArticle` function on each one. The resulting array of HTML
+    // strings is then joined with newline characters to create a single
+    // string of HTML.
+    const html = json.articles.map(createArticle).join("\n");
 
-    main.innerHTML = json.articles.map(createArticle).join("\n");
+    // Set the innerHTML of the `main` element to the HTML string we just
+    // created. This will render the news articles to the page.
+    main.innerHTML = html;
 
 }
 
@@ -67,54 +107,56 @@ async function Search(q) {
     const json = await res.json();
     main.innerHTML = json.articles.map(createArticle).join("\n");
 }
-
 function createArticle(article) {
     const img = article.urlToImage || window.location.href + '/images/No_Image_Available.jpg';
     const author = article.author || 'author';
     return `
-     <div class="col-sm-4">
-                    <div class="tr-section">
-                        <div class="tr-post">
-                            <div class="entry-header">
-                                <div class="entry-thumbnail">
-                                    <a tabindex="0" href="#"><img class="img-fluid" src="${img}" alt="${article.title}"></a>
-                                </div>
-                                <!-- /entry-thumbnail -->
-                            </div>
-                            <!-- /entry-header -->
-                            <div class="post-content">
-                                <div class="author-post">
-                                    <a href="#"><img class="img-fluid rounded-circle" src="images/user.png" alt="${author}"></a>
-                                </div>
-                                <!-- /author -->
-                                <div class="entry-meta">
-                                    <ul>
-                                        <li tabindex="0"><a href="#">${author}</a></li>
-                                        <li tabindex="0">${article.publishedAt}</li>
-                                    </ul>
-                                </div>
-                                <!-- /.entry-meta -->
-                                <h2 tabindex="0"><a href="#" class="entry-title">${article.title}</a></h2>
-                                <p tabindex="0">${article.description}</p>
-                                <div class="read-more">
-                                    <!-- /feed -->
-                                    <div class="continue-reading pull-right">
-                                        <a href="${article.url}">Continue Reading <i class="fa fa-angle-right"></i></a>
-                                    </div>
-                                    <!-- /continue-reading -->
-                                </div>
-                                <!-- /read-more -->
-                            </div>
-                            <!-- /.post-content -->
+        <div class="col-sm-4">
+            <div class="tr-section">
+                <div class="tr-post">
+                    <div class="entry-header">
+                        <div class="entry-thumbnail">
+                            <a tabindex="0" href="${article.url}" target="_blank">
+                                <img class="img-fluid" src="${img}" alt="${article.title}">
+                            </a>
                         </div>
-                        <!-- /.tr-post -->
+                        <!-- /entry-thumbnail -->
                     </div>
-                    <!-- /.tr-post -->
+                    <!-- /entry-header -->
+                    <div class="post-content">
+                        <div class="author-post">
+                            <a href="#"><img class="img-fluid rounded-circle" src="images/user.png" alt="${author}"></a>
+                        </div>
+                        <!-- /author -->
+                        <div class="entry-meta">
+                            <ul>
+                                <li tabindex="0"><a href="#">${author}</a></li>
+                                <li tabindex="0">${new Date(article.publishedAt).toLocaleDateString()}</li>
+                            </ul>
+                        </div>
+                        <!-- /.entry-meta -->
+                        <h2 tabindex="0">
+                            <a href="${article.url}" target="_blank" class="entry-title">${article.title}</a>
+                        </h2>
+                        <p tabindex="0">${article.description}</p>
+                        <div class="read-more">
+                            <div class="continue-reading pull-right">
+                                <a href="${article.url}" target="_blank">Continue Reading <i class="fa fa-angle-right"></i></a>
+                            </div>
+                            <!-- /continue-reading -->
+                        </div>
+                        <!-- /read-more -->
+                    </div>
+                    <!-- /.post-content -->
                 </div>
-                <!-- /col-sm-4 -->
-
+                <!-- /.tr-post -->
+            </div>
+            <!-- /.tr-section -->
+        </div>
+        <!-- /col-sm-4 -->
     `;
 }
+
 
 $(document).ready(function() {
     /*============================================
